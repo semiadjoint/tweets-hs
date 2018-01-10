@@ -13,14 +13,14 @@ main ::
   IO ()
 main = do
   ctx <- baselineContextSSL
-  bracket (openConnectionSSL ctx "api.github.com" 443) closeConnection fn
+  bracket (openConnectionSSL ctx "stream.twitter.com" 443) closeConnection fn
 
 fn ::
   Connection
   -> IO ()
 fn c = do
   let q = buildRequest1 $ do
-        http GET "/"
+        http GET "/1.1/statuses/sample.json"
         setAccept "text/html"
 
   sendRequest c q emptyBody
