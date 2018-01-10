@@ -18,8 +18,18 @@ cabal-version:       >=1.10
 executable project0-exe
   main-is:             Main.hs
   -- other-modules:       
-  ghc-options: -Wall
-               -threaded
+  ghc-options: -threaded
+               -dcore-lint
+               -Werror
+               -Wall
+                -- Extras
+               -fwarn-tabs
+               -fwarn-incomplete-uni-patterns
+               -fwarn-incomplete-record-updates
+               -fwarn-monomorphism-restriction
+               -fwarn-implicit-prelude
+               -- -fwarn-missing-local-signatures
+               -- -fwarn-missing-import-lists
                
   default-extensions: OverloadedStrings
                     , FlexibleContexts
@@ -35,26 +45,39 @@ executable project0-exe
                     , ScopedTypeVariables
   -- other-extensions:    
   build-depends: base >=4.10 && <4.11
+               , deepseq
                , async
-               , bytestring
-               , containers
-               , mtl
-               , stm
+
                , text
-               , transformers
+               , bytestring
+               , base64-bytestring
+
+               , containers
                , unordered-containers
                , vector
+               , array
+
+               , mtl
+               , transformers
+               , stm
+               , lens
+
                , filepath
                , directory
                , process
                , unix
-               , deepseq
+
                , optparse-applicative
                
                , protolude
-               , lens
+
                , io-streams
+
                , http-streams
                , HsOpenSSL
+               , authenticate-oauth
+               , http-client
+               , config-ini
+
   -- hs-source-dirs:      
   default-language:    Haskell2010
