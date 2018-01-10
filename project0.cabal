@@ -53,5 +53,6 @@ executable project0-exe
                , lens
                , io-streams
                , http-streams
+               , HsOpenSSL
   -- hs-source-dirs:      
   default-language:    Haskell2010
