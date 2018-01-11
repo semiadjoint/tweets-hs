@@ -1,8 +1,8 @@
-{-# language TemplateHaskell #-}
-{-# language NoImplicitPrelude #-}
-
 {-# options_ghc -Werror #-}
 {-# options_ghc -Wwarn #-}
+
+{-# language TemplateHaskell #-}
+{-# language NoImplicitPrelude #-}
 
 module Cfg where
 

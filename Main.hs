@@ -1,7 +1,6 @@
 {-# options_ghc -fno-warn-missing-import-lists #-}
 {-# options_ghc -fno-warn-missing-local-signatures #-}
 
--- Swap the following two lines for hack mode.
 {-# options_ghc -Werror #-}
 {-# options_ghc -Wwarn #-}
 

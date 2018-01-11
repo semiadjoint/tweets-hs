@@ -13,6 +13,17 @@ bash run.bash <your-ini-file>
 ``` 
 to start the project.
 
+Your .ini file might look something like
+```ini
+[consumer]
+key = mykey
+secret = mysecret
+
+[token]
+key = mykey
+secret = mysecret
+```
+
 ## development 
 
 If you have Entr, Nix and Cabal installed, you should be able to run
