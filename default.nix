@@ -2,8 +2,8 @@
 , base64-bytestring, bytestring, config-ini, containers, deepseq
 , directory, filepath, HsOpenSSL, http-client, http-streams
 , io-streams, lens, mtl, optparse-applicative, process, protolude
-, stdenv, stm, text, transformers, unix, unordered-containers
-, vector
+, semigroups, stdenv, stm, text, transformers, unix
+, unordered-containers, vector
 }:
 mkDerivation {
   pname = "project0";
@@ -15,8 +15,8 @@ mkDerivation {
     array async authenticate-oauth base base64-bytestring bytestring
     config-ini containers deepseq directory filepath HsOpenSSL
     http-client http-streams io-streams lens mtl optparse-applicative
-    process protolude stm text transformers unix unordered-containers
-    vector
+    process protolude semigroups stm text transformers unix
+    unordered-containers vector
   ];
   license = stdenv.lib.licenses.bsd3;
 }
