@@ -4,11 +4,11 @@ streaming tweets in haskell
 ## trying it out
 
 If you have Nix and Cabal installed, run 
-```
+```shell
 bash setup.bash
 ```
 in this directory to download all dependencies. Then, run 
-```
+```shell
 bash run.bash <your-ini-file>
 ``` 
 to start the project.
@@ -16,7 +16,7 @@ to start the project.
 ## development 
 
 If you have Entr, Nix and Cabal installed, you should be able to run
-```
+```shell
 bash start.bash
 ```
 in this directory to download all dependencies,
