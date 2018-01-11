@@ -17,16 +17,25 @@ import Network.Http.Client
 import OpenSSL(withOpenSSL)
 import Web.Authenticate.OAuth
 import qualified Network.HTTP.Client as C
-import qualified Data.Text as T
 import Data.Text.Encoding(encodeUtf8)
-import Data.Ini.Config
-import Options.Applicative
+import Control.Lens
+import Cfg
 
 main ::
   IO ()
 main = do
-  cfgFile <- parseCfgFileCli cliCfg
-  eCfg <- loadCfg cfgFile cfgParser >>= (pure . either (\s -> Left $ "Loading config failed: " <> s) (Right . identity))
+  parseCfgFileCli cliCfg >>=
+    loadCfgOrDie >>=
+    start
+
+start ::
+  Cfg
+  -> IO ()
+start cfg = do
+  let
+    ck = cfg ^. cfgConsumer . cfgConsumerKey
+    cs = cfg ^. cfgConsumer . cfgConsumerSecret
+    oa = initOauth ck cs
   ctx <- baselineContextSSL
   bracket (openConnectionSSL ctx "stream.twitter.com" 443) closeConnection handleCxn
 
@@ -37,8 +46,6 @@ handleCxn c = do
   let q = buildRequest1 $ do
         http GET "/1.1/statuses/sample.json"
         setAccept "text/html"
-
-  let x = traceShowId q
 
   sendRequest c q emptyBody
 
@@ -88,53 +95,3 @@ initCreds token tokenSecret =
 --   -> Request m          -- ^ Original Request
 --   -> ResourceT m (Request m)
 
-data Cfg = Cfg
-  { _cfgConsumer :: ConsumerCfg
-  , _cfgToken :: TokenCfg
-  }
-data ConsumerCfg = ConsumerCfg
-  { _cfgConsumerKey :: Text
-  , _cfgConsumerSecret :: Text
-  }
-data TokenCfg = TokenCfg
-  { _cfgTokenKey :: Text
-  , _cfgTokenSecret :: Text
-  }
-
-cfgParser :: IniParser Cfg
-cfgParser = do
-  cfgC <- section "consumer" $ do
-    ck <- field "key"
-    cs <- field "secret"
-    pure $ ConsumerCfg ck cs
-  cfgT <- section "token" $ do
-    ck <- field "key"
-    cs <- field "secret"
-    pure $ TokenCfg ck cs
-  pure $ Cfg cfgC cfgT
-
-loadCfg ::
-  Text
-  -> IniParser Cfg
-  -> IO (Either Prelude.String Cfg)
-loadCfg filename parser = do
-  c <- readFile (T.unpack filename)
-  pure $ parseIniFile c parser
-
-data CliCfg = CliCfg
-  { _cfgFile :: Prelude.String
-  }
-cliCfg ::
-  Parser CliCfg
-cliCfg =
-  CliCfg <$> strOption (long "config-file" <> short 'f' <> help ".ini config file")
-
-
-
-parseCfgFileCli ::
-  Parser CliCfg
-  -> IO Text
-parseCfgFileCli cliCfg =
-  fmap (T.pack . _cfgFile) (execParser opts)
-  where
-    opts = info (cliCfg <**> helper) (fullDesc <> progDesc "Streaming tweet stats" <> header "project0 - streaming tweets in haskell")
