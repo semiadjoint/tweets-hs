@@ -20,11 +20,13 @@ import qualified Network.HTTP.Client as C
 import qualified Data.Text as T
 import Data.Text.Encoding(encodeUtf8)
 import Data.Ini.Config
+import Options.Applicative
 
 main ::
   IO ()
 main = do
-  _ <- loadCfg "/x/tweets-hs/secrets/creds.ini" cfgParser >>= (putText . T.pack . either (\s -> "Loading config failed" <> s) (\cfg -> show cfg))
+  cfgFile <- parseCfgFileCli cliCfg
+  eCfg <- loadCfg cfgFile cfgParser >>= (pure . either (\s -> Left $ "Loading config failed: " <> s) (Right . identity))
   ctx <- baselineContextSSL
   bracket (openConnectionSSL ctx "stream.twitter.com" 443) closeConnection handleCxn
 
@@ -90,25 +92,22 @@ data Cfg = Cfg
   { _cfgConsumer :: ConsumerCfg
   , _cfgToken :: TokenCfg
   }
-  deriving(Show)
 data ConsumerCfg = ConsumerCfg
   { _cfgConsumerKey :: Text
   , _cfgConsumerSecret :: Text
   }
-  deriving(Show)
 data TokenCfg = TokenCfg
   { _cfgTokenKey :: Text
   , _cfgTokenSecret :: Text
   }
-  deriving(Show)
 
 cfgParser :: IniParser Cfg
 cfgParser = do
-  cfgC <- section "CONSUMER" $ do
+  cfgC <- section "consumer" $ do
     ck <- field "key"
     cs <- field "secret"
     pure $ ConsumerCfg ck cs
-  cfgT <- section "TOKEN" $ do
+  cfgT <- section "token" $ do
     ck <- field "key"
     cs <- field "secret"
     pure $ TokenCfg ck cs
@@ -121,3 +120,21 @@ loadCfg ::
 loadCfg filename parser = do
   c <- readFile (T.unpack filename)
   pure $ parseIniFile c parser
+
+data CliCfg = CliCfg
+  { _cfgFile :: Prelude.String
+  }
+cliCfg ::
+  Parser CliCfg
+cliCfg =
+  CliCfg <$> strOption (long "config-file" <> short 'f' <> help ".ini config file")
+
+
+
+parseCfgFileCli ::
+  Parser CliCfg
+  -> IO Text
+parseCfgFileCli cliCfg =
+  fmap (T.pack . _cfgFile) (execParser opts)
+  where
+    opts = info (cliCfg <**> helper) (fullDesc <> progDesc "Streaming tweet stats" <> header "project0 - streaming tweets in haskell")
