@@ -1,9 +1,9 @@
 { mkDerivation, array, async, authenticate-oauth, base
-, base64-bytestring, bytestring, config-ini, containers, deepseq
-, directory, filepath, HsOpenSSL, http-client, http-streams
-, io-streams, lens, mtl, optparse-applicative, process, protolude
-, semigroups, stdenv, stm, text, transformers, unix
-, unordered-containers, vector
+, base64-bytestring, bytestring, conduit, config-ini, containers
+, deepseq, directory, filepath, HsOpenSSL, http-client
+, http-streams, io-streams, lens, mtl, optparse-applicative
+, process, protolude, semigroups, stdenv, stm, text, transformers
+, unix, unordered-containers, vector
 }:
 mkDerivation {
   pname = "project0";
@@ -13,7 +13,7 @@ mkDerivation {
   isExecutable = true;
   executableHaskellDepends = [
     array async authenticate-oauth base base64-bytestring bytestring
-    config-ini containers deepseq directory filepath HsOpenSSL
+    conduit config-ini containers deepseq directory filepath HsOpenSSL
     http-client http-streams io-streams lens mtl optparse-applicative
     process protolude semigroups stm text transformers unix
     unordered-containers vector
