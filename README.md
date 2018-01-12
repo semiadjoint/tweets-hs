@@ -1,5 +1,5 @@
 # tweets-hs
-streaming tweets in haskell
+[wip] streaming tweets in haskell
 
 ## trying it out
 
