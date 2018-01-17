@@ -1,9 +1,9 @@
-{ mkDerivation, array, async, authenticate-oauth, base
-, base64-bytestring, bytestring, conduit, config-ini, containers
-, deepseq, directory, filepath, HsOpenSSL, http-client
-, http-streams, io-streams, lens, mtl, optparse-applicative
-, process, protolude, semigroups, stdenv, stm, text, transformers
-, unix, unordered-containers, vector
+{ mkDerivation, aeson, array, async, base, base64-bytestring
+, bytestring, conduit, config-ini, containers, deepseq, directory
+, filepath, http-conduit, lens, mtl, optparse-applicative, process
+, protolude, resourcet, semigroups, stdenv, stm, text, transformers
+, twitter-conduit, twitter-types, unix, unordered-containers
+, vector
 }:
 mkDerivation {
   pname = "project0";
@@ -12,10 +12,10 @@ mkDerivation {
   isLibrary = false;
   isExecutable = true;
   executableHaskellDepends = [
-    array async authenticate-oauth base base64-bytestring bytestring
-    conduit config-ini containers deepseq directory filepath HsOpenSSL
-    http-client http-streams io-streams lens mtl optparse-applicative
-    process protolude semigroups stm text transformers unix
+    aeson array async base base64-bytestring bytestring conduit
+    config-ini containers deepseq directory filepath http-conduit lens
+    mtl optparse-applicative process protolude resourcet semigroups stm
+    text transformers twitter-conduit twitter-types unix
     unordered-containers vector
   ];
   license = stdenv.lib.licenses.bsd3;

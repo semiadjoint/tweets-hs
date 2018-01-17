@@ -5,21 +5,30 @@
 {-# options_ghc -Wwarn #-}
 
 {-# language NoImplicitPrelude #-}
+{-# language EmptyDataDecls #-}
+
 
 module Main where
 
 import qualified Prelude
 import Protolude
-import qualified System.IO.Streams as Streams
 import qualified Data.ByteString as S
-import Network.Http.Client
-import OpenSSL(withOpenSSL)
-import Web.Authenticate.OAuth
-import qualified Network.HTTP.Client as C
+import qualified Data.Text as T
 import Data.Text.Encoding(encodeUtf8)
 import Control.Lens
-import Control.Monad.Trans.Resource(ResourceIO())
 import Cfg
+import Web.Twitter.Types
+import Web.Twitter.Conduit
+import Web.Twitter.Conduit.Types (TWInfo)
+import qualified Web.Twitter.Conduit.Parameters as P
+import Web.Twitter.Conduit.Lens
+import qualified Data.Conduit as C
+import Control.Monad.Trans.Resource
+import qualified Data.Conduit.List as CL
+import Data.ByteString.Char8 as S8
+import Network.HTTP.Conduit as HTTP
+import Data.Aeson()
+
 
 main ::
   IO ()
@@ -27,6 +36,8 @@ main = do
   parseCfgFileCli cliCfg >>=
     loadCfgOrDie >>=
     start
+
+data Samplestream
 
 start ::
   Cfg
@@ -37,57 +48,19 @@ start cfg = do
     cs = cfg ^. cfgConsumer . cfgConsumerSecret
     tk = cfg ^. cfgToken . cfgTokenKey
     ts = cfg ^. cfgToken . cfgTokenSecret
-    oa = initOauth ck cs
-    cred = initCreds tk ts
-    rq = undefined
-    signed = signOAuth oa cred rq
-  ctx <- baselineContextSSL
-  bracket (openConnectionSSL ctx "stream.twitter.com" 443) closeConnection handleCxn
-
-handleCxn ::
-  Connection
-  -> IO ()
-handleCxn c = do
-  let q = buildRequest1 $ do
-        http GET "/1.1/statuses/sample.json"
-        setAccept "text/html"
-
-  sendRequest c q emptyBody
-
-  receiveResponse c f
-    where f p i = do
-            S.putStr $ show p
-            x <- Streams.read i
-            S.putStr $ fromMaybe "" x
-
--- We build the oauth up as a http-client Request, then convert to our
--- Request.
-convertFromHttpClient ::
-  C.Request
-  -> Network.Http.Client.Request
-convertFromHttpClient =
-  undefined
-
-initOauth ::
-  Text
-  -> Text
-  -> OAuth
-initOauth consumerKey consumerSecret =
-  def { oauthServerName = "stream.twitter.com"
-      , oauthSignatureMethod = HMACSHA1
-      , oauthConsumerKey = consumerKeyBs
-      , oauthConsumerSecret = consumerSecretBs
+    oauth = twitterOAuth
+      { oauthConsumerKey = S8.pack (T.unpack ck)
+      , oauthConsumerSecret = S8.pack (T.unpack cs)
       }
-  where
-    consumerKeyBs = encodeUtf8 consumerKey
-    consumerSecretBs = encodeUtf8 consumerSecret
+    cred = Credential
+      [ ("oauth_token", S8.pack (T.unpack tk))
+      , ("oauth_token_secret", S8.pack (T.unpack ts))
+      ]
+    tgt :: APIRequest Samplestream StreamingAPI
+    tgt = APIRequestGet "https://stream.twitter.com/1.1/statuses/sample.json" []
+    twinfo = setCredential oauth cred def
 
-initCreds ::
-  Text
-  -> Text
-  -> Credential
-initCreds token tokenSecret =
-  newCredential tokenBs tokenSecretBs
-  where
-    tokenBs = encodeUtf8 token
-    tokenSecretBs = encodeUtf8 tokenSecret
+  mgr <- newManager tlsManagerSettings
+  runResourceT $ process (stream twinfo mgr tgt)
+
+process = (>>= (C.$$+- CL.mapM_ (liftIO . putText . show)))
