@@ -30,6 +30,7 @@ executable project0-exe
                -fwarn-implicit-prelude
                -- -fwarn-missing-local-signatures
                -- -fwarn-missing-import-lists
+               -fhide-source-paths
                
   default-extensions: OverloadedStrings
                     , FlexibleContexts
