@@ -28,6 +28,7 @@ import qualified Data.Conduit.List as CL
 import Data.ByteString.Char8 as S8
 import Network.HTTP.Conduit as HTTP
 import Data.Aeson()
+import Data.Function((&))
 
 
 main ::
@@ -61,6 +62,6 @@ start cfg = do
     twinfo = setCredential oauth cred def
 
   mgr <- newManager tlsManagerSettings
-  runResourceT $ process (stream twinfo mgr tgt)
+  runResourceT $ (stream twinfo mgr tgt) & process
 
 process = (>>= (C.$$+- CL.mapM_ (liftIO . putText . show)))

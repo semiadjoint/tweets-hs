@@ -44,7 +44,7 @@ executable project0-exe
                     , DeriveGeneric
                     , ScopedTypeVariables
   -- other-extensions:    
-  build-depends: base >=4.10 && <4.11
+  build-depends: base >=4.10 && <5
                , semigroups
                , deepseq
                , async
@@ -78,6 +78,8 @@ executable project0-exe
                , http-conduit
                , twitter-types
                , aeson
+               , streaming
+               -- , streaming-conduit 
 
   -- hs-source-dirs:      
   default-language:    Haskell2010

@@ -1,9 +1,9 @@
 { mkDerivation, aeson, array, async, base, base64-bytestring
 , bytestring, conduit, config-ini, containers, deepseq, directory
 , filepath, http-conduit, lens, mtl, optparse-applicative, process
-, protolude, resourcet, semigroups, stdenv, stm, text, transformers
-, twitter-conduit, twitter-types, unix, unordered-containers
-, vector
+, protolude, resourcet, semigroups, stdenv, stm, streaming, text
+, transformers, twitter-conduit, twitter-types, unix
+, unordered-containers, vector
 }:
 mkDerivation {
   pname = "project0";
@@ -15,7 +15,7 @@ mkDerivation {
     aeson array async base base64-bytestring bytestring conduit
     config-ini containers deepseq directory filepath http-conduit lens
     mtl optparse-applicative process protolude resourcet semigroups stm
-    text transformers twitter-conduit twitter-types unix
+    streaming text transformers twitter-conduit twitter-types unix
     unordered-containers vector
   ];
   license = stdenv.lib.licenses.bsd3;
