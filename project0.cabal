@@ -71,6 +71,8 @@ executable project0-exe
 
                , optparse-applicative
                , config-ini
+
+               , fast-logger
                
                , protolude
                , twitter-conduit
@@ -80,6 +82,7 @@ executable project0-exe
                , twitter-types
                , aeson
                , streaming
+
                -- , streaming-conduit 
 
   -- hs-source-dirs:      

@@ -29,21 +29,21 @@ import Data.ByteString.Char8 as S8
 import Network.HTTP.Conduit as HTTP
 import Data.Aeson()
 import Data.Function((&))
-
-
-main ::
-  IO ()
-main = do
-  parseCfgFileCli cliCfg >>=
-    loadCfgOrDie >>=
-    start
+import System.Log.FastLogger
 
 data Samplestream
 
-start ::
+main ::
+  IO ()
+main =
+  parseCfgFileCli cliCfg >>=
+  loadCfgOrDie >>= \ cfg ->
+  withFastLogger (LogStdout 1024) (start cfg)
+
+twInfo ::
   Cfg
-  -> IO ()
-start cfg = do
+  -> TWInfo
+twInfo cfg =
   let
     ck = cfg ^. cfgConsumer . cfgConsumerKey
     cs = cfg ^. cfgConsumer . cfgConsumerSecret
@@ -57,11 +57,21 @@ start cfg = do
       [ ("oauth_token", S8.pack (T.unpack tk))
       , ("oauth_token_secret", S8.pack (T.unpack ts))
       ]
+    twinfo = setCredential oauth cred def
+  in
+    twinfo
+
+start ::
+  Cfg
+  -> FastLogger
+  -> IO ()
+start cfg log = do
+  let
+    twinfo = twInfo cfg
     tgt :: APIRequest Samplestream StreamingAPI
     tgt = APIRequestGet "https://stream.twitter.com/1.1/statuses/sample.json" []
-    twinfo = setCredential oauth cred def
 
   mgr <- newManager tlsManagerSettings
-  runResourceT $ (stream twinfo mgr tgt) & process
-
-process = (>>= (C.$$+- CL.mapM_ (liftIO . putText . show)))
+  runResourceT $ (stream twinfo mgr tgt) & (process log)
+  where
+    process log = (>>= (C.$$+- CL.mapM_ (liftIO . log . toLogStr . T.pack . show)))
