@@ -1,3 +1,3 @@
 #! /usr/bin/env bash
 
-bash setup.bash && cabal build
+bash reload.bash && cabal build

@@ -1,4 +1,4 @@
 #! /usr/bin/env bash
 
-bash rebuild.bash && \
+bash reload.bash && \
   bash watch.bash
