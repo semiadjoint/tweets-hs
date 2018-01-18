@@ -34,6 +34,7 @@ import qualified System.Metrics.Prometheus.Http.Scrape as Metrics
 import qualified System.Metrics.Prometheus.Concurrent.RegistryT as Metrics
 import qualified System.Metrics.Prometheus.Concurrent.Registry as Metrics hiding(registerCounter)
 import qualified System.Metrics.Prometheus.Metric.Counter as Metrics
+import Control.Arrow
 
 data Samplestream
 
@@ -47,23 +48,29 @@ start ::
   Cfg
   -> FastLogger
   -> IO ()
-start cfg log = Metrics.runRegistryT $ do
-  -- liftIO $ System.IO.hSetBuffering System.IO.stdin System.IO.NoBuffering
-  metrics <- initMetrics
-  liftIO $ log "initialized metrics"
-  liftIO $ Metrics.inc $ eventsCounter metrics
+start cfg log = do
+  metrics <- Metrics.runRegistryT $ do
+    eventsCounter <- Metrics.registerCounter "events_total" mempty
+    liftIO $ log "initialized metrics"
+    Metrics.RegistryT $ ReaderT $ \ r ->
+      Metrics.serveHttpTextMetricsT 5775 ["metrics"] &
+      Metrics.unRegistryT &
+      runReaderT &
+      ($ r) &
+      forkIO
+    liftIO $ log "initialized metrics server"
+    pure $ MessageSourceMetrics {..}
+
   let
+    ctr = eventsCounter metrics
     twinfo = twInfo cfg
     tgt :: APIRequest Samplestream StreamingAPI
     tgt = APIRequestGet "https://stream.twitter.com/1.1/statuses/sample.json" []
-  mgr <- liftIO $ newManager tlsManagerSettings
-  liftIO $ forkIO $ runResourceT $ (stream twinfo mgr tgt) & (process log)
-
-  liftIO $ log "starting metrics server"
-  Metrics.serveHttpTextMetricsT 5775 ["metrics"]
-
-  where
-    process log = (>>= (C.$$+- CL.mapM_ (liftIO . log . toLogStr . T.pack . show)))
+    op x = (log . toLogStr . T.pack . show) x >> Metrics.inc ctr
+    process log =
+      (>>= (C.$$+- CL.mapM_ (op >>> liftIO)))
+  mgr <- newManager tlsManagerSettings
+  runResourceT $ (stream twinfo mgr tgt) & (process log)
 
 data MessageSourceMetrics =
   MessageSourceMetrics
@@ -71,7 +78,3 @@ data MessageSourceMetrics =
   }
 
 
-initMetrics :: Metrics.RegistryT IO MessageSourceMetrics
-initMetrics = Metrics.runRegistryT $ do
-  eventsCounter <- lift $ Metrics.registerCounter "events_total" mempty
-  pure $ MessageSourceMetrics {..}
