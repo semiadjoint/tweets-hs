@@ -47,22 +47,21 @@ start ::
   Cfg
   -> FastLogger
   -> IO ()
-start cfg log = do
-  System.IO.hSetBuffering System.IO.stdin System.IO.NoBuffering
-  metrics <- Metrics.runRegistryT $ do
-    m <- initMetrics
-    liftIO $ log "initialized metrics"
-    Metrics.serveHttpTextMetricsT 5775 ["metrics"]
-    liftIO $ log "initialized metrics server"
-    pure m
-  Metrics.inc $ eventsCounter metrics
-  putText $ "kill me"
+start cfg log = Metrics.runRegistryT $ do
+  -- liftIO $ System.IO.hSetBuffering System.IO.stdin System.IO.NoBuffering
+  metrics <- initMetrics
+  liftIO $ log "initialized metrics"
+  liftIO $ Metrics.inc $ eventsCounter metrics
   let
     twinfo = twInfo cfg
     tgt :: APIRequest Samplestream StreamingAPI
     tgt = APIRequestGet "https://stream.twitter.com/1.1/statuses/sample.json" []
-  mgr <- newManager tlsManagerSettings
-  runResourceT $ (stream twinfo mgr tgt) & (process log)
+  mgr <- liftIO $ newManager tlsManagerSettings
+  liftIO $ forkIO $ runResourceT $ (stream twinfo mgr tgt) & (process log)
+
+  liftIO $ log "starting metrics server"
+  Metrics.serveHttpTextMetricsT 5775 ["metrics"]
+
   where
     process log = (>>= (C.$$+- CL.mapM_ (liftIO . log . toLogStr . T.pack . show)))
 
