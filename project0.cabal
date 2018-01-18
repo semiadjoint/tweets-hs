@@ -73,6 +73,7 @@ executable project0-exe
                , config-ini
 
                , fast-logger
+               , prometheus
                
                , protolude
                , twitter-conduit
