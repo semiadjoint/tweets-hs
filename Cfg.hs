@@ -12,6 +12,11 @@ import Control.Lens.TH
 import Data.Ini.Config
 import qualified Data.Text as T
 import Options.Applicative
+import qualified Data.ByteString.Char8 as S8
+import Web.Twitter.Conduit.Types (TWInfo)
+import qualified Web.Twitter.Conduit as TC
+import Web.Twitter.Conduit(def)
+import Control.Lens
 
 data ConsumerCfg = ConsumerCfg
   { _cfgConsumerKey :: Text
@@ -78,3 +83,24 @@ loadCfgOrDie cfgFile = do
     (\ s -> die $ T.pack $ "Loading config failed: " <> s)
     pure
     eCfg
+
+twInfo ::
+  Cfg
+  -> TWInfo
+twInfo cfg =
+  let
+    ck = cfg ^. cfgConsumer . cfgConsumerKey
+    cs = cfg ^. cfgConsumer . cfgConsumerSecret
+    tk = cfg ^. cfgToken . cfgTokenKey
+    ts = cfg ^. cfgToken . cfgTokenSecret
+    oauth = TC.twitterOAuth
+      { TC.oauthConsumerKey = S8.pack (T.unpack ck)
+      , TC.oauthConsumerSecret = S8.pack (T.unpack cs)
+      }
+    cred = TC.Credential
+      [ ("oauth_token", S8.pack (T.unpack tk))
+      , ("oauth_token_secret", S8.pack (T.unpack ts))
+      ]
+    twinfo = TC.setCredential oauth cred def
+  in
+    twinfo
