@@ -17,7 +17,10 @@ cabal-version:       >=1.10
 
 executable project0-exe
   main-is:             Main.hs
-  other-modules:       Cfg
+  other-modules: Cfg
+               , Histogram
+               , Analyze
+               , X
   ghc-options: -threaded
                -dcore-lint
                -Werror
