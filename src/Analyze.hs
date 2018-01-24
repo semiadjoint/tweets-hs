@@ -1,3 +1,4 @@
+{-# options_ghc -Wwarn #-}
 {-# language RankNTypes #-}
 {-# language RecordWildCards #-}
 {-# language NoImplicitPrelude #-}
